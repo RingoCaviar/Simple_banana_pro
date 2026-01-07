@@ -12,8 +12,5 @@
 
 ### 预览：
 
-- 
-
-![image-20260106181029093](pic/image-20260106181029093.png)
-
-![image-20260106181455819](pic/image-20260106181455819.png)
+- <img src="pic/image-20260106181029093.png" alt="image-20260106181029093" style="zoom:80%;" />
+- <img src="D:\mygithub\Simple_banana_pro\pic\image-20260106181455819.png" alt="image-20260107152037834" style="zoom: 80%;" />
