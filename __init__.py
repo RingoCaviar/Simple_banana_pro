@@ -15,7 +15,7 @@ except ImportError:
     types = None
 
 # ==========================================
-# 核心节点类：大香蕉Pro (隐私保护版)
+# 核心节点类：大香蕉Pro (欺骗种子版)
 # ==========================================
 class BigBananaProNode:
     def __init__(self):
@@ -25,18 +25,20 @@ class BigBananaProNode:
     def INPUT_TYPES(s):
         return {
             "required": {
-                # 1. 这里留空，默认去读文件
                 "API密钥": ("STRING", {"multiline": False, "default": "", "placeholder": "留空则自动读取 api_key.txt"}),
                 
                 "提示词": ("STRING", {"multiline": True, "dynamicPrompts": True, "default": "A futuristic city with flying cars, cinematic lighting, 4k, masterpiece"}),
                 
-                # 2. 改回你要的默认值
                 "模型名称": ("STRING", {"multiline": False, "default": "gemini-3-pro-image-preview"}),
                 
                 "画质等级": (["1K", "2K", "4K"], {"default": "1K"}),
                 "长宽比": (["1:1", "16:9", "9:16", "4:3", "3:4", "21:9", "5:4", "4:5", "未指定(Free)"], {"default": "1:1"}),
                 
                 "启用Google搜索": ("BOOLEAN", {"default": False, "label_on": "开启 (Grounding)", "label_off": "关闭"}),
+                
+                # 🔥 新增：种子 (仅用于触发刷新，不传给API)
+                "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff}),
+                
                 "代理地址": ("STRING", {"multiline": False, "default": "", "placeholder": "例如 http://127.0.0.1:7890 (留空自动)"}),
             },
             "optional": {
@@ -57,16 +59,8 @@ class BigBananaProNode:
         return buffered.getvalue()
 
     def get_api_key(self, input_key):
-        """
-        获取 API Key 的逻辑：
-        1. 优先使用节点输入框里的内容。
-        2. 如果输入框为空，尝试读取插件目录下的 api_key.txt。
-        """
-        # 情况1: 用户在UI里填了，直接用
         if input_key and input_key.strip():
             return input_key.strip()
-
-        # 情况2: 尝试读取文件
         key_file = os.path.join(self.current_dir, "api_key.txt")
         if os.path.exists(key_file):
             try:
@@ -77,10 +71,10 @@ class BigBananaProNode:
                         return file_key
             except Exception as e:
                 print(f"⚠️ 读取 api_key.txt 失败: {e}", flush=True)
-        
         return None
 
-    def generate_image(self, API密钥, 提示词, 模型名称, 画质等级, 长宽比, 启用Google搜索, 代理地址, 参考图=None):
+    # 注意：这里增加了 seed 参数，但我们在函数内部完全不使用它
+    def generate_image(self, API密钥, 提示词, 模型名称, 画质等级, 长宽比, 启用Google搜索, seed, 代理地址, 参考图=None):
         
         if genai is None:
             raise ImportError("请先安装官方库: pip install google-genai")
@@ -90,7 +84,8 @@ class BigBananaProNode:
         if not real_api_key:
             raise ValueError("❌ 未找到 API Key！\n请在节点输入框填写，或者在插件目录创建 api_key.txt 文件。")
 
-        print(f"\n🍌 大香蕉 Pro (SDK版) 启动...", flush=True)
+        # 这里打印一下 seed，证明 ComfyUI 确实检测到了变化
+        print(f"\n🍌 大香蕉 Pro 启动... (伪装种子已变: {seed})", flush=True)
 
         # 代理设置
         http_options = None
@@ -126,8 +121,12 @@ class BigBananaProNode:
         if "Free" not in 长宽比:
             image_config["aspect_ratio"] = 长宽比
 
+        # 生成配置
+        # 注意：这里我们故意没有把 seed 传进去，也没有传 temperature 等
+        # 仅仅依靠 API 默认的随机性。
+        # 但因为 ComfyUI 看到输入里的 seed 变了，所以会重新执行到这里。
         config = types.GenerateContentConfig(
-            temperature=1.0,
+            temperature=1.0, 
             tools=tools,
             response_modalities=["IMAGE"], 
             image_config=image_config
