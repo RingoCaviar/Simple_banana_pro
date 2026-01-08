@@ -9,7 +9,7 @@
 
 ### 使用方法：
 
-- 在Custom nodes文件夹中新建一个英文文件夹，把__init__.py文件复制进去就行
+- 点击绿色按钮code   >   download zip，之后解压到同名文件夹，把该文件夹放到comfyui的custom nodes文件夹中即可
 - https://grsai.ai/zh 这个网站可以买API
 
 ### 预览：
